@@ -1,5 +1,7 @@
 Revision history for XML-xmlapi
 
-0.01    Date/time
-        First version, released on an unsuspecting world.
+0.01    2010-02-03
+        Initial version of this time around.  Finally decided to release the damn thing into the wild.  I hope you find it useful.
 
+0.02	2010-02-03
+		Cleaned up documentation formatting.

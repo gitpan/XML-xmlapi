@@ -10,11 +10,11 @@ XML::xmlapi - The xmlapi was an expat wrapper library I wrote in 2000 in ANSI C;
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 
 =head1 SYNOPSIS
@@ -32,7 +32,9 @@ The xmlapi loads an XML file or string into a hash structure, and provides a lot
 Before manipulating XML, you have to have the structure.  These functions let you build that.
 
 =head2 new($tag), create($tag)
+
 These are synonomous.  At the moment, they just take the XML tag of the parent.
+
 =cut
 
 sub new { $_[0]->create($_[1]); }
@@ -49,7 +51,9 @@ sub create {
 }
 
 =head2 createtext($content)
+
 A text element is used for non-tag content.  In <tag>This stuff</tag>, "This stuff" is the non-tag content.
+
 =cut
 sub createtext {
    my ($class, $text) = @_;
@@ -60,7 +64,9 @@ sub createtext {
 }
 
 =head2 createinto ($tag)
+
 Takes an existing xmlapi object and makes it a completely new XML tag.  You probably don't need this (it comes in handy in the parser, though).
+
 =cut
 sub createinto {
    my $ret = shift;
@@ -75,7 +81,9 @@ sub createinto {
 }
 
 =head2 read($string), parse($string)
+
 Synonomous functions that, given a string containing some XML, build an xmlapi object from it.
+
 =cut
 sub read { return parse (@_); }
 sub parse {
@@ -115,7 +123,9 @@ sub parse {
 }
 
 =head2 parse_from_file ($file)
+
 Given a filename, loads its contents into an xmlapi structure.
+
 =cut
 
 sub parse_from_file {
@@ -155,12 +165,16 @@ sub parse_from_file {
 }   
 
 =head1 WRITING XML
+
 Once you've got XML structures built, you'll eventually want to write them out somewhere (that's basically the point).  Here
 are some methods to do that.
+
 =cut
 
 =head2 string()
+
 Returns a string representation of the XML structure.  Quotes all characters appropriately for XML serialization.
+
 =cut
 sub string {
    my $xml = shift;
@@ -188,7 +202,9 @@ sub string {
 }
 
 =head2 stringcontent()
+
 Same as C<string>, except it doesn't include the enclosing tags; just gives you the content.
+
 =cut
 
 sub stringcontent {
@@ -208,13 +224,17 @@ sub stringcontent {
 }
 
 =head2 stringcontenthtml()
+
 This might be a fossil.  The point is to write HTML-ish output given the XML input, but that isn't what's implemented
 in this module.
+
 =cut
 sub stringcontenthtml { $_[0]->stringcontent->unescape; }
 
 =head2 write($file)
+
 Given a stream or a filename, writes the XML to said stream or file.
+
 =cut
 sub write {
    my ($xml, $f) = @_;
@@ -247,8 +267,10 @@ sub write {
 }
 
 =head2 write_UCS2LE ($filename)
+
 Given a filename, opens it with :raw:encoding(UCS-2LE):crlf:utf8 and writes an 0xFEFF byte order marker at the outset.
 This is used by TRADOS TTX files, which is why it's here; it might be useful for other things, but if so, I have yet to discover them.
+
 =cut
 
 sub write_UCS2LE {
@@ -263,11 +285,14 @@ sub write_UCS2LE {
 }
 
 =head1 ATTRIBUTES
+
 In XML, as I'm sure you know, each tag may have any number of attributes.  These functions allow you to set them and get their values.
 XML::xmlapi remembers the order of attributes you write, in an attempt to be able to write files in the same way it found them.
 
 =head2 set($attr, $value)
+
 Sets a value for an attribute.
+
 =cut
 sub set {
    my $elem = shift;
@@ -277,7 +302,9 @@ sub set {
 }
 
 =head2 get($attr), attrval($attr)
+
 Synonomous functions to retrieve an attribute value.
+
 =cut
 sub attrval { $_[0]->get($_[1]); }
 sub get {
@@ -287,11 +314,14 @@ sub get {
 }
 
 =head1 STRUCTURE
+
 In addition to attributes, any XML tag may contain an arbitrary list of other tags and non-tag text content.  These methods
 expose that stuff.
 
 =head2 elements()
+
 Returns a list of the elements (i.e. tags, not content) under the XML tag you give it.
+
 =cut
 sub elements {
    my $elem = shift;
@@ -300,7 +330,9 @@ sub elements {
 }
 
 =head2 children()
+
 Returns the list of all children in order, i.e. tags and non-tag text.
+
 =cut
 sub children {
    my $elem = shift;
@@ -309,7 +341,9 @@ sub children {
 }
 
 =head2 parent()
+
 Returns the parent of the current tag, if there is one.  This allows you to walk around in trees.
+
 =cut
 sub parent {
    my ($xml) = @_;
@@ -317,7 +351,9 @@ sub parent {
 }
 
 =head2 copy()
+
 Makes a copy of a tag that is an independent tree, that is, has no parent.
+
 =cut
 sub copy {
    my $orig = shift;
@@ -334,11 +370,13 @@ sub copy {
 }
 
 =head2 append ($child), append_pretty ($child)
+
 Adds a newly created tag at the end of the current tag's content list.  Don't do this with a tag that's already in another tree,
 or the pointers will no longer match up (the other tree will still think it owns the appended child).
 
 The C<append> method just slaps the tag into the parent; the C<append_pretty> method inserts newlines as needed to ensure that the
 resulting XML structure is readable.
+
 =cut
 sub append {
    my ($parent, $child) = @_;
@@ -357,7 +395,9 @@ sub append_pretty {
 }
 
 =head2 replace($child)
+
 Given a new child, finds the first existing child with the same name (tag) and replaces that one with the new one.
+
 =cut
 sub replace {
    my ($parent, $child) = @_;
@@ -373,8 +413,10 @@ sub replace {
 }
 
 =head2 replacecontent($child)
+
 Given a new child, removes all existing children from the current tag and replaces them all with the new child.  In
 Perl, should probably take a list, but it doesn't, yet.
+
 =cut
 sub replacecontent {
    my ($parent, $child) = @_;
@@ -387,7 +429,9 @@ sub replacecontent {
 }
 
 =head2 is($name)
+
 Returns true if the tag is named $name.
+
 =cut
 sub is {
    my ($elem, $name) = @_;
@@ -396,7 +440,9 @@ sub is {
 }
 
 =head2 is_element()
+
 Returns true if the tag is an element, false if it's content.
+
 =cut
 sub is_element {
    my ($elem) = @_;
@@ -410,17 +456,22 @@ sub is_element {
 }
 
 =head2 name()
+
 Returns the current tag's tag.
+
 =cut
 sub name { $_[0]{name}; }
 
 =head1 SEARCHING XML TREES
+
 =head2 search ($element, $attribute, $value)
+
 Does a (depth-first) search of the XML structure for an element named $element (if undef, the tag of the element
 is ignored in the search) with an attribute $attribute with value $value (those two can also be undef if you don't
 care about attributes).
 
 Returns a list of all matches.
+
 =cut
 sub search {
    my ($xml, $element, $attr, $val) = @_;
@@ -440,7 +491,9 @@ sub search {
 }
 
 =head2 search_first ($element, $attribute, $value)
+
 Does the same as C<search> but returns after finding the first match.
+
 =cut
 sub search_first {
    my ($xml, $element, $attr, $val) = @_;
@@ -461,9 +514,11 @@ sub search_first {
 }
 
 =head2 xmlobj_is_field, xmlobj_field, xmlobj_set, xmlobj_get, xmlobj_getkey
+
 These are fossils right now, left over from extensive C code that I used between 2000 and about 2004.
 If I see a need to reimplement them in Perl, I will document them then.  These implementations work, but
 I frankly don't remember how well.
+
 =cut
 sub xmlobj_is_field {
    my ($xml, $list, $field) = @_;
@@ -503,7 +558,9 @@ sub xmlobj_getkey {
 }
 
 =head2 escape($string), unescape($string)
-XML-escape and unescape the string you give them.  Can also be called as a class method.
+
+XML-escape and unescape the string you give them.  Can also be called as class methods.
+
 =cut
 sub escape {
    my ($whatever, $str) = @_;
