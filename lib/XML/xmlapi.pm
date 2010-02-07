@@ -10,11 +10,11 @@ XML::xmlapi - The xmlapi was an expat wrapper library I wrote in 2000 in ANSI C;
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 
 =head1 SYNOPSIS
