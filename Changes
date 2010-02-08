@@ -8,3 +8,6 @@ Revision history for XML-xmlapi
 
 0.03	2010-02-04
 	I think maybe I am starting to understand the whole META.yml requires thing.
+
+0.04	2010-04-08
+	Fixed a couple of bugs that really shouldn't have been there.

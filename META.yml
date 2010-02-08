@@ -1,7 +1,7 @@
 --- #YAML:1.0
 name:               XML-xmlapi
-version:            0.03
-abstract:           The xmlapi was an expat wrapper library I wrote in 2000 in ANSI C; this is its Perl port.
+version:            0.04
+abstract:           The xmlapi was a structure manipulation library I wrote in 2000 in ANSI C upon discovering XML; this is its Perl port.
 author:
     - Michael Roberts <michael@vivtek.com>
 license:            perl

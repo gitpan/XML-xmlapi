@@ -6,15 +6,15 @@ use XML::Parser;
 
 =head1 NAME
 
-XML::xmlapi - The xmlapi was an expat wrapper library I wrote in 2000 in ANSI C; this is its Perl port.
+XML::xmlapi - The xmlapi was a structure manipulation library I wrote in 2000 in ANSI C upon discovering XML; this is its Perl port.
 
 =head1 VERSION
 
-Version 0.03
+Version 0.04
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 
 =head1 SYNOPSIS
@@ -211,7 +211,6 @@ sub stringcontent {
    my $xml = shift;
    my $ret = '';
 
-   return '' unless ref($xml) eq 'HASH';
    return $xml->escape ($$xml{content}) unless $xml->is_element;
 
    if (@{$$xml{children}}) {
@@ -358,6 +357,7 @@ Makes a copy of a tag that is an independent tree, that is, has no parent.
 sub copy {
    my $orig = shift;
 
+   return XML::xmlapi->createtext ($$orig{content}) unless $orig->is_element;
    my $ret = XML::xmlapi->create ($$orig{name});
    foreach (@{$$orig{attrs}}) {
       $ret->set ($_, $orig->attrval ($_));
