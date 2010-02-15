@@ -4,10 +4,13 @@ Revision history for XML-xmlapi
         Initial version of this time around.  Finally decided to release the damn thing into the wild.  I hope you find it useful.
 
 0.02	2010-02-03
-	Cleaned up documentation formatting.
-
+		Cleaned up documentation formatting.
+        
 0.03	2010-02-04
-	I think maybe I am starting to understand the whole META.yml requires thing.
+        I think maybe I am starting to understand the whole META.yml requires thing.
 
-0.04	2010-04-08
-	Fixed a couple of bugs that really shouldn't have been there.
+0.04	2010-02-08
+        Fixed a couple of bugs that really shouldn't have been there.
+        
+0.05    2010-02-14
+        Added some functions! (Now that I'm using the library more widely.)

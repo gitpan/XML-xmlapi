@@ -6,15 +6,15 @@ use XML::Parser;
 
 =head1 NAME
 
-XML::xmlapi - The xmlapi was a structure manipulation library I wrote in 2000 in ANSI C upon discovering XML; this is its Perl port.
+XML::xmlapi - The xmlapi was an expat wrapper library I wrote in 2000 in ANSI C; this is its Perl port.
 
 =head1 VERSION
 
-Version 0.04
+Version 0.05
 
 =cut
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 
 =head1 SYNOPSIS
@@ -171,9 +171,10 @@ are some methods to do that.
 
 =cut
 
-=head2 string()
+=head2 string(), rawstring()
 
-Returns a string representation of the XML structure.  Quotes all characters appropriately for XML serialization.
+Returns a string representation of the XML structure.  The C<string> quotes all characters appropriately for XML serialization, while
+C<rawstring> does not.
 
 =cut
 sub string {
@@ -200,10 +201,34 @@ sub string {
 
    return $ret;
 }
+sub rawstring {
+   my $xml = shift;
+   return '' unless defined $xml;
 
-=head2 stringcontent()
+   my $ret = '';
 
-Same as C<string>, except it doesn't include the enclosing tags; just gives you the content.
+   return $$xml{content} unless $xml->is_element;
+
+   $ret .= "<$$xml{name}";
+   foreach (@{$$xml{attrs}}) {
+      $ret .= " $_=\"" . ${$$xml{attrval}}{$_} . "\"";
+   }
+   if (!@{$$xml{children}}) {
+      $ret .= "/>";
+   } else {
+      $ret .= ">";
+      foreach (@{$$xml{children}}) {
+         $ret .= $_->rawstring;
+      }
+      $ret .= "</$$xml{name}>";
+   }
+
+   return $ret;
+}
+
+=head2 stringcontent(), content()
+
+Same as C<string> and C<rawstring>, except they don't include the enclosing tags; just give you the content.
 
 =cut
 
@@ -216,6 +241,20 @@ sub stringcontent {
    if (@{$$xml{children}}) {
       foreach (@{$$xml{children}}) {
          $ret .= $_->string;
+      }
+   }
+
+   return $ret;
+}
+sub content {
+   my $xml = shift;
+   my $ret = '';
+
+   return $$xml{content} unless $xml->is_element;
+
+   if (@{$$xml{children}}) {
+      foreach (@{$$xml{children}}) {
+         $ret .= $_->rawstring;
       }
    }
 
@@ -317,15 +356,36 @@ sub get {
 In addition to attributes, any XML tag may contain an arbitrary list of other tags and non-tag text content.  These methods
 expose that stuff.
 
-=head2 elements()
+=head2 elements($name)
 
-Returns a list of the elements (i.e. tags, not content) under the XML tag you give it.
+Returns a list of the elements (i.e. tags, not content) under the XML tag you give it.  If you give a name, it will only return those
+that match that name.
 
 =cut
 sub elements {
-   my $elem = shift;
+   my ($elem, $name) = @_;
    return () unless $elem->is_element;
-   return @{$$elem{elements}};
+   if ($name) {
+      grep {$_->is($name)} @{$elem->{elements}};
+   } else {
+      @{$$elem{elements}};
+   }
+}
+
+=head2 first($name)
+
+Returns the first element under the tag you give it; again, if given a name it will return that name.
+
+=cut
+
+sub first {
+   my ($elem, $name) = @_;
+   return () unless $elem->is_element;
+   return ${$elem->{elements}}[0] unless $name;
+   foreach (@{$elem->{elements}}) {
+      return $_ if $_->is($name);
+   }
+   return ();
 }
 
 =head2 children()
