@@ -1,16 +1,16 @@
 XML-xmlapi
 
-The README is used to introduce the module and provide instructions on
-how to install the module, any machine dependencies it may have (for
-example C compilers and installed libraries) and any other information
-that should be provided before the module is installed.
+The xmlapi was originally written as a structure manipulation library for
+ANSI C in my ill-fated wftk project in the year 2000.  (Yeah.)  I've kept
+it forever, obviously, and ported it into Perl and Python as I got more into
+those languages.
 
-A README file is required for CPAN modules since CPAN extracts the README
-file from a module distribution so that people browsing the archive
-can use it to get an idea of the module's uses. It is usually a good idea
-to provide version information here so that people can decide whether
-fixes for the module are worth downloading.
+Now, I find I'm just too attached to it.  So with the advent of the
+semantic programming framework, it's the structure manipulation library of
+choice.  My choice, anyway.  It's lightweight, so you'll hardly know it's
+there.
 
+Seriously, it's not too bad a choice for tree-shaped data.
 
 INSTALLATION
 

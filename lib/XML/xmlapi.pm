@@ -10,11 +10,11 @@ XML::xmlapi - The xmlapi was an expat wrapper library I wrote in 2000 in ANSI C;
 
 =head1 VERSION
 
-Version 0.05
+Version 0.06
 
 =cut
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 
 =head1 SYNOPSIS
@@ -33,7 +33,9 @@ Before manipulating XML, you have to have the structure.  These functions let yo
 
 =head2 new($tag), create($tag)
 
-These are synonomous.  At the moment, they just take the XML tag of the parent.
+These are synonomous.  At the moment, they just take the XML tag to be created.  I had started some convenience code in C to set attributes directly in the
+creation call, but Perl's sane string handling obviates a lot of the convenience stuff I needed in C just to get by.  So this may be the final form of these
+calls.
 
 =cut
 
@@ -71,7 +73,7 @@ Takes an existing xmlapi object and makes it a completely new XML tag.  You prob
 sub createinto {
    my $ret = shift;
    $$ret{name} = shift;
-   $$ret{parent} = '';
+   $$ret{parent} = undef;
    $$ret{attrs} = [];
    $$ret{attrval} = {};
    $$ret{children} = [];
@@ -339,16 +341,67 @@ sub set {
    ${$$elem{attrval}}{$attr} = shift;
 }
 
-=head2 get($attr), attrval($attr)
+=head2 attrdef($attr)
 
-Synonomous functions to retrieve an attribute value.
+Returns true if the attribute has been defined, false otherwise.  Maybe not too useful on its own, but used in the following functions.
 
 =cut
-sub attrval { $_[0]->get($_[1]); }
-sub get {
+
+sub attrdef {
    my ($elem, $attrname) = @_;
-   if (!(defined ${$$elem{attrval}}{$attrname})) { return ''; }
+   defined ${$$elem{attrval}}{$attrname};
+}
+
+=head2 get($attr, $default), attrval($attr, $default)
+
+Synonomous functions to retrieve an attribute value.  If the attribute is not defined, will return the default value supplied, if any.  If no
+default is supplied, returns a blank, I<not> an undefined value.  You might hate that.
+
+=cut
+sub attrval { $_[0]->get($_[1], $_[2]); }
+sub get {
+   my ($elem, $attrname, $default) = @_;
+   if (!$elem->attrdef($attrname)) { return $default ? $default : ''; }
    return ${$$elem{attrval}}{$attrname};
+}
+
+=head2 getnum($attr, $default)
+
+Guaranteed to return a numeric value.  In other words, if the attribute is undefined or has a text value, returns $default or 0.
+
+=cut
+
+sub getnum {
+   my ($elem, $attrname, $default) = @_;
+   if (!(defined ${$$elem{attrval}}{$attrname})) { return $default ? $default : 0; }
+   my $value = ${$$elem{attrval}}{$attrname};
+   if ($value =~ /^([\-+]?[.0-9]+)/) {
+      $1 + 0;
+   } else {
+      $default ? $default : 0
+   }
+}
+
+=head2 getcontext($attr, $default), getnumcontext($attr, $default)
+
+Get an attribute value by text or by number, but if it's not found, try the tag's parent, recursively.  Allows the tree to act
+like a set of nested value contexts.
+
+=cut
+
+sub getcontext {
+   my ($elem, $attrname, $default) = @_;
+   return $elem->{attrval}->{$attrname} if $elem->attrdef($attrname);
+   my $p = $elem->parent;
+   return $p->getcontext($attrname, $default) if $p;
+   $default ? $default : '';
+}
+sub getnumcontext {
+   my ($elem, $attrname, $default) = @_;
+   return $elem->getnum($attrname, $default) if $elem->attrdef($attrname);
+   my $p = $elem->parent;
+   return $p->getnumcontext($attrname, $default) if $p;
+   $default ? $default : 0;
 }
 
 =head1 STRUCTURE
@@ -399,14 +452,24 @@ sub children {
    return @{$$elem{children}};
 }
 
-=head2 parent()
+=head2 parent(), ancestor('tag')
 
-Returns the parent of the current tag, if there is one.  This allows you to walk around in trees.
+The C<parent> function returns the parent of the current tag, if there is one.  This allows you to walk around in trees.
+The C<ancestor> function calls parent repeatedly until it finds a parent with the tag you supply, or runs out of parents.
+If it's not given a parent tag name, it will return the root of the tree, not an undefined.
 
 =cut
-sub parent {
-   my ($xml) = @_;
-   return ($$xml{parent});
+sub parent { $_[0]->{parent} }
+
+sub ancestor {
+   my ($xml, $tag) = @_;
+   my $p = $xml->parent;
+   if (not $p) {
+      return $xml if not defined $tag;
+      return undef;
+   }
+   return $p if $p->is($tag);
+   return $p->ancestor($tag);
 }
 
 =head2 copy()
@@ -496,6 +559,7 @@ Returns true if the tag is named $name.
 sub is {
    my ($elem, $name) = @_;
 
+   return 0 unless $name;
    return ($$elem{name} eq $name);
 }
 
@@ -537,15 +601,14 @@ sub search {
    my ($xml, $element, $attr, $val) = @_;
    my @retlist = ();
    foreach my $elem ($xml->elements) {
-      if ($elem->is($element)) {
+      if ((not defined $element) || $elem->is($element)) {
          if (!defined($attr)) {
             push @retlist, $elem;
          } else {
             push @retlist, $elem if $elem->attrval ($attr) eq $val;
          }
-      } else {
-         push @retlist, $elem->search ($element, $attr, $val);
       }
+      push @retlist, $elem->search ($element, $attr, $val);
    }
    return @retlist;
 }
@@ -558,16 +621,15 @@ Does the same as C<search> but returns after finding the first match.
 sub search_first {
    my ($xml, $element, $attr, $val) = @_;
    foreach my $elem ($xml->elements) {
-      if ($elem->is($element)) {
-         if (!defined ($attr) || !defined ($val)) { # TODO: these semantics seem fishy...
+      if ((not defined $element) || $elem->is($element)) {
+         if (!defined ($attr)) {
             return $elem;
          } else {
             return $elem if $elem->attrval ($attr) eq $val;
          }
-      } else {
-         my $ret = $elem->search_first ($element, $attr, $val);
-         return $ret if $ret ne '';
       }
+      my $ret = $elem->search_first ($element, $attr, $val);
+      return $ret if $ret;
    }
 
    return '';

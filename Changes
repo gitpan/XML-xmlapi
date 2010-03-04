@@ -14,3 +14,6 @@ Revision history for XML-xmlapi
         
 0.05    2010-02-14
         Added some functions! (Now that I'm using the library more widely.)
+        
+0.06    2010-02-27
+        Added ancestor(), and started adding unit tests.  I feel so ... good about myself.  I've been meaning to do this for *five years*.
