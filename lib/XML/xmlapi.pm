@@ -10,11 +10,11 @@ XML::xmlapi - The xmlapi was an expat wrapper library I wrote in 2000 in ANSI C;
 
 =head1 VERSION
 
-Version 0.06
+Version 0.07
 
 =cut
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 
 =head1 SYNOPSIS
@@ -329,9 +329,11 @@ sub write_UCS2LE {
 In XML, as I'm sure you know, each tag may have any number of attributes.  These functions allow you to set them and get their values.
 XML::xmlapi remembers the order of attributes you write, in an attempt to be able to write files in the same way it found them.
 
-=head2 set($attr, $value)
+=head2 set($attr, $value), set_or_get ($attr, $value)
 
-Sets a value for an attribute.
+Both set a value for an attribute.  The C<set> function I<only> sets the value; the C<set_or_get> can be called with an undefined
+value and won't set anything, but in any case will return the current value (after setting it, if necessary).  These semantics
+are really useful for tied values and the like.
 
 =cut
 sub set {
@@ -339,6 +341,11 @@ sub set {
    my $attr = shift;
    push @{$$elem{attrs}}, $attr if !grep {$_ eq $attr} @{$$elem{attrs}};
    ${$$elem{attrval}}{$attr} = shift;
+}
+sub set_or_get {
+   my ($elem, $attr, $val) = @_;
+   $elem->set($attr, $val) if defined $val;
+   $elem->get($attr);
 }
 
 =head2 attrdef($attr)
